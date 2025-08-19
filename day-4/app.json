@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "day2",
-    "slug": "day2",
+    "name": "day-3",
+    "slug": "day-3",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "day2",
+    "scheme": "day3",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
