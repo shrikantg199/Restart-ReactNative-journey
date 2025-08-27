@@ -322,7 +322,7 @@ export default function SignUpScreen() {
             autoCorrect={false}
           />
 
-          <Text style={styles.label}>Username (optional)</Text>
+          <Text style={styles.label}>Username </Text>
           <TextInput
             value={username}
             autoCapitalize="none"
