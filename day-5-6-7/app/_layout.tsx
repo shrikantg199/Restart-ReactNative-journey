@@ -1,3 +1,4 @@
+import "react-native-gesture-handler";
 import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
@@ -6,6 +7,7 @@ import { Redirect, Stack, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
@@ -16,6 +18,12 @@ export const unstable_settings = {
   initialRouteName: "(tabs)",
 };
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+if (!CLERK_PUBLISHABLE_KEY) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    "Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY. Set it in .env or eas.json env."
+  );
+}
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -42,12 +50,14 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider
-      publishableKey={CLERK_PUBLISHABLE_KEY}
-      tokenCache={tokenCache}
-    >
-      <RootLayoutNav />
-    </ClerkProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ClerkProvider
+        publishableKey={CLERK_PUBLISHABLE_KEY || ""}
+        tokenCache={tokenCache}
+      >
+        <RootLayoutNav />
+      </ClerkProvider>
+    </GestureHandlerRootView>
   );
 }
 

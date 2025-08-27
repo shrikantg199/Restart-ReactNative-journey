@@ -25,6 +25,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="day3"/>
+        <data android:scheme="com.its_shri_20.day5"/>
       </intent-filter>
     </activity>
   </application>

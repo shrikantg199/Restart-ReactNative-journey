@@ -314,7 +314,7 @@ export default function SignUpScreen() {
             autoCapitalize="none"
             keyboardType="email-address"
             value={emailAddress}
-            placeholder="you@example.com"
+            placeholder="Enter Your Email"
             placeholderTextColor="#9aa0a6"
             onChangeText={(email) => setEmailAddress(email)}
             style={styles.input}
@@ -326,7 +326,7 @@ export default function SignUpScreen() {
           <TextInput
             value={username}
             autoCapitalize="none"
-            placeholder="Pick a username"
+            placeholder=" Enter Your Username"
             placeholderTextColor="#9aa0a6"
             onChangeText={setUsername}
             style={styles.input}

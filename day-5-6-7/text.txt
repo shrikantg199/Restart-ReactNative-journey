@@ -3,3 +3,48 @@ drawer,
 verify code
 redirect after code verified  
 clerk authentication
+
+errors:file path,babel config,eas.json file,
+
+"Perfect clarification 🙌
+If you **aren’t using any `.svg` files**, but you still get this `RNSVGPath / RCTRNSVGPath` error, it usually means:
+
+* A **library you installed depends on `react-native-svg`** (for example `react-native-chart-kit`, `react-native-paper`, `react-native-maps` markers, etc.).
+* In Expo Go, it works because Expo bundles `react-native-svg`.
+* In your dev build / standalone build, you need to **add it manually**.
+
+---
+
+### ✅ Simple Fix (No `.svg` files needed)
+
+Just install `react-native-svg` and rebuild:
+
+```bash
+expo install react-native-svg
+```
+
+Then clean and rebuild:
+
+```bash
+expo prebuild --clean
+npx expo run:android   # or run:ios
+```
+
+---
+
+### ⚡ You **do not need** `react-native-svg-transformer`
+
+That’s only if you want to import `.svg` files as React components. Since you don’t, skip that part.
+
+---
+
+So your solution is just:
+
+1. `expo install react-native-svg`
+2. `expo prebuild --clean`
+3. Re-run the app
+
+---
+
+👉 Do you want me to also check which of your installed libraries is **implicitly pulling in `react-native-svg`**? That way you’ll know why it was required.
+"
