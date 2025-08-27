@@ -1,53 +1,48 @@
-import * as React from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import { useSignUp } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
-import Colors from "../../constants/Colors";
 
 export default function SignUpScreen() {
   const { isLoaded, signUp, setActive } = useSignUp();
   const router = useRouter();
 
-  const [emailAddress, setEmailAddress] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [pendingVerification, setPendingVerification] = React.useState(false);
-  const [code, setCode] = React.useState("");
-  const [errorMessage, setErrorMessage] = React.useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [pendingVerification, setPendingVerification] = useState(false);
 
   // Handle submission of sign-up form
   const onSignUpPress = async () => {
     if (!isLoaded) return;
 
-    // Basic password validation
-    if (password.length < 8) {
-      setErrorMessage("Password must be at least 8 characters long.");
-      return;
-    }
+    console.log(email, password);
 
+    // Start sign-up process using email and password provided
     try {
       await signUp.create({
-        emailAddress,
-        password,
+        emailAddress: email,
+        password: password,
       });
 
       // Send user an email with verification code
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
 
-      // Clear any previous errors and set pendingVerification to true
-      setErrorMessage("");
+      // Set 'pendingVerification' to true to display second form
+      // and capture OTP code
       setPendingVerification(true);
-    } catch (err: any) {
-      console.error(JSON.stringify(err, null, 2));
-      // Handle pwned password error
-      if (err.clerkError && err.errors?.[0]?.code === "form_password_pwned") {
-        setErrorMessage(
-          "This password has been found in a data breach. Please choose a stronger password."
-        );
-      } else {
-        setErrorMessage(
-          "Sign-up failed. Please check your details and try again."
-        );
-      }
+    } catch (err) {
+      // See https://clerk.com/docs/custom-flows/error-handling
+      // for more info on error handling
+      console.error(err);
     }
   };
 
@@ -62,244 +57,116 @@ export default function SignUpScreen() {
       });
 
       // If verification was completed, set the session to active
-      // and redirect the user to tabs
+      // and redirect the user
       if (signUpAttempt.status === "complete") {
         await setActive({ session: signUpAttempt.createdSessionId });
-        router.replace("/(drawer)/(tabs)");
+        router.replace("/");
       } else {
-        setErrorMessage("Verification incomplete. Please try again.");
-        console.error(
-          "Verification incomplete:",
-          JSON.stringify(signUpAttempt, null, 2)
-        );
+        // If the status is not complete, check why. User may need to
+        // complete further steps.
+        console.error(JSON.stringify(signUpAttempt, null, 2));
       }
-    } catch (err: any) {
-      // Enhanced error logging for debugging
-      console.error("Verification error (raw):", err);
-      console.error("Verification error (string):", String(err));
-      try {
-        console.error(
-          "Verification error (JSON):",
-          JSON.stringify(err, null, 2)
-        );
-      } catch (e) {
-        console.error("Verification error could not be stringified:", e);
+    } catch (err) {
+      if ((err as any)?.errors?.[0]?.code === "verification_already_verified") {
+        router.replace("/");
+        return;
       }
-      // Show more detailed error message if available
-      if (err && err.clerkError && err.errors && err.errors[0]) {
-        setErrorMessage(
-          `Verification failed: ${err.errors[0].message} (code: ${err.errors[0].code})`
-        );
-      } else {
-        setErrorMessage(
-          "Verification failed. Please check the code and try again."
-        );
-      }
+      console.error(err);
     }
   };
 
   if (pendingVerification) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: Colors.light.background,
-          padding: 24,
-        }}
-      >
-        <View
-          style={{
-            width: "100%",
-            maxWidth: 400,
-            backgroundColor: "#fff",
-            borderRadius: 16,
-            padding: 24,
-            shadowColor: "#000",
-            shadowOpacity: 0.1,
-            shadowRadius: 10,
-            elevation: 3,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: "bold",
-              color: Colors.light.tint,
-              marginBottom: 24,
-              textAlign: "center",
-            }}
-          >
-            Verify your email
-          </Text>
-          {errorMessage ? (
-            <Text
-              style={{
-                color: "red",
-                marginBottom: 16,
-                textAlign: "center",
-                fontSize: 14,
-              }}
-            >
-              {errorMessage}
-            </Text>
-          ) : null}
-          <TextInput
-            value={code}
-            placeholder="Enter your verification code"
-            onChangeText={(text) => {
-              setCode(text);
-              setErrorMessage(""); // Clear error on input change
-            }}
-            style={{
-              borderWidth: 1,
-              borderColor: Colors.light.tabIconDefault,
-              borderRadius: 8,
-              padding: 12,
-              marginBottom: 24,
-              fontSize: 16,
-            }}
-          />
-          <TouchableOpacity
-            onPress={onVerifyPress}
-            style={{
-              backgroundColor: Colors.light.tint,
-              borderRadius: 8,
-              paddingVertical: 14,
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 16 }}>
-              Verify
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <>
+        <Text>Verify your email</Text>
+        <TextInput
+          value={code}
+          placeholder="Enter your verification code"
+          onChangeText={(code) => setCode(code)}
+        />
+        <TouchableOpacity onPress={onVerifyPress}>
+          <Text>Verify</Text>
+        </TouchableOpacity>
+      </>
     );
   }
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: Colors.light.background,
-        padding: 24,
-      }}
-    >
-      <View
-        style={{
-          width: "100%",
-          maxWidth: 400,
-          backgroundColor: "#fff",
-          borderRadius: 16,
-          padding: 24,
-          shadowColor: "#000",
-          shadowOpacity: 0.1,
-          shadowRadius: 10,
-          elevation: 3,
-        }}
+    <View style={styles.container}>
+      <Text style={styles.title}>Sign Up</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+      {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
+      <TouchableOpacity
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        onPress={onSignUpPress}
+        disabled={isLoading}
       >
-        <Text
-          style={{
-            fontSize: 28,
-            fontWeight: "bold",
-            color: Colors.light.tint,
-            marginBottom: 24,
-            textAlign: "center",
-          }}
-        >
-          Sign up
+        <Text style={styles.buttonText}>
+          {isLoading ? "Creating Account..." : "Sign Up"}
         </Text>
-        {errorMessage ? (
-          <Text
-            style={{
-              color: "red",
-              marginBottom: 16,
-              textAlign: "center",
-              fontSize: 14,
-            }}
-          >
-            {errorMessage}
-          </Text>
-        ) : null}
-        <TextInput
-          autoCapitalize="none"
-          value={emailAddress}
-          placeholder="Enter email"
-          onChangeText={(text) => {
-            setEmailAddress(text);
-            setErrorMessage(""); // Clear error on input change
-          }}
-          style={{
-            borderWidth: 1,
-            borderColor: Colors.light.tabIconDefault,
-            borderRadius: 8,
-            padding: 12,
-            marginBottom: 16,
-            fontSize: 16,
-          }}
-        />
-        <TextInput
-          value={password}
-          placeholder="Enter password"
-          secureTextEntry={true}
-          onChangeText={(text) => {
-            setPassword(text);
-            setErrorMessage(""); // Clear error on input change
-          }}
-          style={{
-            borderWidth: 1,
-            borderColor: Colors.light.tabIconDefault,
-            borderRadius: 8,
-            padding: 12,
-            marginBottom: 16,
-            fontSize: 16,
-          }}
-        />
-        <Text
-          style={{
-            color: Colors.light.text,
-            marginBottom: 16,
-            fontSize: 14,
-            textAlign: "center",
-          }}
-        >
-          Use at least 8 characters, including letters, numbers, and symbols.
-        </Text>
-        <TouchableOpacity
-          onPress={onSignUpPress}
-          style={{
-            backgroundColor: Colors.light.tint,
-            borderRadius: 8,
-            paddingVertical: 14,
-            alignItems: "center",
-            marginBottom: 16,
-          }}
-        >
-          <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 16 }}>
-            Continue
-          </Text>
-        </TouchableOpacity>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Text style={{ color: Colors.light.text }}>
-            Already have an account?{" "}
-          </Text>
-          <Link href="/sign-in">
-            <Text style={{ color: Colors.light.tint, fontWeight: "bold" }}>
-              Sign in
-            </Text>
-          </Link>
-        </View>
+      </TouchableOpacity>
+      <View style={{ display: "flex", flexDirection: "row", gap: 3 }}>
+        <Text>Already have an account?</Text>
+        <Link href="/sign-in">
+          <Text>Sign in</Text>
+        </Link>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#fff",
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "600",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+  },
+  button: {
+    backgroundColor: "#007bff",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  buttonDisabled: {
+    backgroundColor: "#ccc",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  error: {
+    color: "red",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+});
