@@ -1,0 +1,1 @@
+npx expo install expo-dev-client @react-native-firebase/app @react-native-firebase/auth @react-native-firebase/firestore @react-native-firebase/functions @react-native-firebase/messaging @react-native-firebase/crashlytics @react-native-google-signin/google-signin expo-constants

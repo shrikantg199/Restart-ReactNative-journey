@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "798347040547",
+    "project_id": "expo-49ce2",
+    "storage_bucket": "expo-49ce2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:798347040547:android:ba0ab60ac2ea0c687c9e96",
+        "android_client_info": {
+          "package_name": "com.its_shri_20.day5"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6oiiZtpio6r2L-uAbjkmvgCQ0e4CdNfs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
